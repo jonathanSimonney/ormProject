@@ -1,7 +1,5 @@
 <?php
 
-use Doctrine\ORM\Mapping as ORM;
-
 /**
  * Class Seance
  * @Entity @Table(name="seances")
