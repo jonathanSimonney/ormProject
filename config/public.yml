@@ -1,0 +1,4 @@
+orm_config:
+    language: 'mySql'
+    use_strict: true
+    entity_config: annotation
