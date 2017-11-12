@@ -1,6 +1,8 @@
 <?php
+require_once 'vendor/autoload.php';
 
 use Symfony\Component\Yaml\Yaml;
+use Library\Orm;
 
 
 $publicConfig = Yaml::parse(file_get_contents('config/public.yml'));
