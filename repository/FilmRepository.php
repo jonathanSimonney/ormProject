@@ -5,7 +5,7 @@ use Library\BaseRepository;
 
 /**
  * Class FilmRepository
- * @Repository @Entity films
+ * @Entity Film
  */
 
 class FilmRepository extends BaseRepository

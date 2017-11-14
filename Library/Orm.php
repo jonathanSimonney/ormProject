@@ -29,15 +29,37 @@ class Orm
         }
 
         $this->setupEntitiesAnnotation($publicConfig['entity_folder_path']);
-        $this->setupRepositoryAnnotations($publicConfig['repository_folder_path']);
+        $this->setupRepositoryAnnotations($publicConfig['repository_folder_path'], $publicConfig['entity_folder_path']);
 
         var_dump($this->entitiesConfig['entity\\Film']);
 
         $this->checkDbConn($privateConfig);
     }
 
-    private function setupRepositoryAnnotations($repositoryFolder)
+    private function setupRepositoryAnnotations($repositoryFolder, $entityFolder)
     {
+        $arrayRepository = scandir(__DIR__.'\\..\\'.$repositoryFolder);
+
+        foreach ($arrayRepository as $repo){
+            if ($this->endsWith($repo, '.php')) {
+                $repoClass = $repositoryFolder.'\\'.substr($repo, 0, -4);
+                $reflectionClass = new \ReflectionClass($repositoryFolder.'\\'.substr($repo, 0, -4));
+
+                $classComment = $reflectionClass->getDocComment();
+                $classAnnotation = $this->parseAnnotation($classComment);
+
+                if (!isset($classAnnotation['Entity'])){
+                    throw new \Exception('You must put an entity key for your repository class.');
+                }
+
+                $key = $entityFolder.'\\'.$classAnnotation['Entity'];
+                if (!isset($this->entitiesConfig[$key])){
+                    throw new \Exception('Class '.$classAnnotation['Entity'].' does not exist, please enter a valid class name for repository '.$repo);
+                }
+
+                $this->entitiesConfig[$key]['repository'] = $repoClass;
+            }
+        }
     }
 
     private function setupEntitiesAnnotation($entityFolder)
@@ -91,6 +113,7 @@ class Orm
                     throw new \Exception('The entities MUST have at least an id field : no id field found for entity '.$singleEntityConfig['name']);
                 }
 
+                $singleEntityConfig['repository'] = BaseRepository::class;
                 $this->entitiesConfig[$singleEntityConfig['name']] = $singleEntityConfig;
             }
         }
