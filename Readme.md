@@ -23,10 +23,11 @@ You'll need to create your own private.yml file, and within it,
 This file should be put in the config folder. 
 
 As for the public.yml, it contains options for the orm itself, but to be honest, in V1 it won't 
-serve at all, since all the options will have only one value allowed.  
+barely serve at all, since almost all the options will have only one value allowed.  
 
-Though, this will allow further improvement to be easier to develop. The only value currently allowed are the ones currently put in this file
-(except for the entity_folder_path).  
+Though, this will allow further improvement to be easier to develop. The only value currently
+ allowed are the ones currently put in this file
+(except for the entity_folder_path and the repository_folder_path).  
 
 In the future, you shall be able to choose with this file : 
 > - which language you want your orm to use for queries (currently only mySQL is supported)
@@ -42,6 +43,11 @@ where the entities generate the database is supported)
 
 The orm itself is in the Library folder. the entity folder contains some very basics entities to make example for the orm.  
 Finally, the test folder contains the examples of how to use the orm itself.  
+As a reminder, please note that your entity folder MUST have a getRepositoryName method, 
+and that the corresponding repository must be in the repository folder path or the entity repository
+will simply be the BaseRepository.  
+
+You'll need to make sure all your entities extend the BaseEntity given in the library.
   
 ####Further updates to do : 
 

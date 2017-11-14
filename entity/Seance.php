@@ -1,27 +1,30 @@
 <?php
 namespace entity;
 
+use Library\BaseEntity;
+
 /**
  * Class Seance
- * @Entity @Table(name="seances")
+ * @Table seances
  */
-class Seance
+class Seance extends BaseEntity
 {
     /**
      * @var int
-     * @Id @Column(type="integer") @GeneratedValue
+     * @Id @Column integer
      */
     protected $id;
 
     /**
      * @var DateTime
-     * @Column(type="date")
+     * @Column date
      */
     protected $showtime;
 
     /**
      * @var Film
-     * @ORM\ManyToOne(targetEntity="Film", inversedBy="seances")
+     * @ManyToOne Film
+     * @InversedBy seances
      */
     protected $film;
 

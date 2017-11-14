@@ -1,9 +1,11 @@
 <?php
-namespace entity;
+namespace repository;
+
+use Library\BaseRepository;
 
 /**
  * Class FilmRepository
- * @Repository @Entity (name="films")
+ * @Repository @Entity films
  */
 
 class FilmRepository extends BaseRepository

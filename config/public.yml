@@ -4,3 +4,4 @@ orm_config:
     entity_config: annotation
     from_db_to_entity: false
     entity_folder_path: entity
+    repository_folder_path: repository

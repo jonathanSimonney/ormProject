@@ -1,52 +1,58 @@
 <?php
 namespace entity;
 
+use Library\BaseEntity;
+
 /**
  * Class Film
- * @Entity @Table(name="films")
+ * @Table films
  */
 
-class Film
+class Film extends BaseEntity
 {
     /**
      * @var int
-     * @Id @Column(type="integer") @GeneratedValue
+     * @Id @Column integer
      */
     protected $id;
 
     /**
      * @var string
-     * @Column(type="string")
+     * @Column string
+     * @ColumnName test_column_title
      */
     protected $title;
 
     /**
      * @var string
-     * @Column(type="string", nullable=true)
+     * @Column string
+     * @Nullable true
      */
     protected $director;
 
     /**
      * @var DateTime
-     * @Column(type="date")
+     * @Column date
      */
     protected $releaseDate;
 
     /**
      * @var string
-     * @Column(type="string", nullable=true)
+     * @Column string
+     * @Nullable true
      */
     protected $genre;
 
     /**
      * @var int
-     * @Column(type="integer")
+     * @Column integer
      */
     protected $duration;
 
     /**
      * @var Seance[]
-     * @ORM\OneToMany(targetEntity="Seance", mappedBy="film")
+     * @OneToMany Seance
+     * @MappedBy film
      */
     protected $seances;
 
