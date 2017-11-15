@@ -31,7 +31,7 @@ class Orm
         $this->setupEntitiesAnnotation($publicConfig['entity_folder_path']);
         $this->setupRepositoryAnnotations($publicConfig['repository_folder_path'], $publicConfig['entity_folder_path']);
 
-        var_dump($this->entitiesConfig['entity\\Film']);
+//        var_dump($this->entitiesConfig['entity\\Film']);
 
         $this->checkDbConn($privateConfig);
     }
@@ -44,6 +44,10 @@ class Orm
             if ($this->endsWith($repo, '.php')) {
                 $repoClass = $repositoryFolder.'\\'.substr($repo, 0, -4);
                 $reflectionClass = new \ReflectionClass($repositoryFolder.'\\'.substr($repo, 0, -4));
+
+                if (!$reflectionClass->isSubclassOf(BaseRepository::class)){
+                    throw new \Exception('Your repositories MUST extend the baseRepository class');
+                }
 
                 $classComment = $reflectionClass->getDocComment();
                 $classAnnotation = $this->parseAnnotation($classComment);
@@ -73,6 +77,11 @@ class Orm
                 $singleEntityConfig = [];
 
                 $reflectionClass = new \ReflectionClass($entityFolder.'\\'.substr($entity, 0, -4));
+
+                if (!$reflectionClass->isSubclassOf(BaseEntity::class)){
+                    throw new \Exception('Your entities MUST extend the baseEntity class');
+                }
+
                 $singleEntityConfig['name'] = $reflectionClass->getName();
 
                 $classComment = $reflectionClass->getDocComment();
@@ -159,5 +168,30 @@ class Orm
 
         return $length === 0 ||
         (substr($haystack, -$length) === $needle);
+    }
+
+    public function updateDb()
+    {
+        foreach ($this->entitiesConfig as $entity) {
+            $sqlQuery = 'CREATE TABLE `'.$entity['dbConfig'].'`(';
+
+            $first = true;
+
+            foreach ($entity['attributes'] as $attribute){
+                if ($first){
+                    $first = false;
+                }else{
+                    $sqlQuery .= ', ';
+                }
+                /**
+                 * @var $attribute EntityAttribute
+                 */
+                $sqlQuery .= $attribute->getSQLCreateStatement();
+            }
+
+            $sqlQuery .= ')';
+
+            $this->dbalConn->exec($sqlQuery);
+        }
     }
 }

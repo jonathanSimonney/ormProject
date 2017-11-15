@@ -8,6 +8,7 @@ use Doctrine\Common\CommonException;
 
 class EntityAttribute
 {
+    static private $dbTypeEquivalent;
     private $name;
     private $isId;
     private $isNullable;
@@ -19,6 +20,13 @@ class EntityAttribute
 
     public function __construct($name, $annotationData)
     {
+        self::$dbTypeEquivalent = [
+            'integer'  => 'INT',
+            'string'   => 'VARCHAR(255)',
+            'text'     => 'LONGTEXT',
+            'datetime' => 'DATETIME',
+        ];
+
         $this->setName($name);
 
         if (isset($annotationData['Id'])){
@@ -57,6 +65,16 @@ class EntityAttribute
         }else{
             $this->dbType = $annotationData['Column'];
         }
+    }
+
+    private function getFormatedDbType(){
+        if (isset(self::$dbTypeEquivalent[strtolower($this->dbType)])){
+            return self::$dbTypeEquivalent[strtolower($this->dbType)];
+        }
+
+        return strtoupper($this->dbType);
+
+        //todo : log this somewhere throw new \Exception('unrecognized data type.');
     }
 
     /**
@@ -170,4 +188,15 @@ class EntityAttribute
 //    {
 //        $this->entityRel = $entityRel;
 //    }
+    public function getSQLCreateStatement(){
+        if ($this->isId){
+            return $this->dbColumn.' INT AUTO_INCREMENT NOT NULL, PRIMARY KEY('.$this->name.')';
+        }
+
+        //todo if this is an entity attribute, do things differently...
+
+        $notOrDefault = $this->isNullable ? 'DEFAULT' : 'NOT';
+
+        return $this->dbColumn.' '.$this->getFormatedDbType().' '.$notOrDefault.' NULL';
+    }
 }
