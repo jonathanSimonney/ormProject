@@ -24,20 +24,20 @@ class Film extends BaseEntity
     protected $title;
 
     /**
-     * @var string
+     * @var ?string
      * @Column string
      * @Nullable true
      */
     protected $director;
 
     /**
-     * @var DateTime
+     * @var \DateTime
      * @Column date
      */
     protected $releaseDate;
 
     /**
-     * @var string
+     * @var ?string
      * @Column string
      * @Nullable true
      */
@@ -62,9 +62,9 @@ class Film extends BaseEntity
     }
 
     /**
-     * @return int
+     * @return int | null
      */
-    public function getId(): int
+    public function getId() : ?int
     {
         return $this->id;
     }
@@ -110,17 +110,17 @@ class Film extends BaseEntity
     }
 
     /**
-     * @return DateTime
+     * @return \DateTime
      */
-    public function getReleaseDate(): DateTime
+    public function getReleaseDate(): \DateTime
     {
         return $this->releaseDate;
     }
 
     /**
-     * @param DateTime $releaseDate
+     * @param \DateTime $releaseDate
      */
-    public function setReleaseDate(DateTime $releaseDate)
+    public function setReleaseDate(\DateTime $releaseDate)
     {
         $this->releaseDate = $releaseDate;
     }
@@ -128,7 +128,7 @@ class Film extends BaseEntity
     /**
      * @return string
      */
-    public function getGenre(): string
+    public function getGenre(): ?string
     {
         return $this->genre;
     }
@@ -144,7 +144,7 @@ class Film extends BaseEntity
     /**
      * @return int
      */
-    public function getDuration(): int
+    public function getDuration(): ?int
     {
         return $this->duration;
     }

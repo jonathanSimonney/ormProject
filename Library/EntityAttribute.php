@@ -20,7 +20,7 @@ class EntityAttribute
 
     public function __construct($name, $annotationData)
     {
-        self::$dbTypeEquivalent = [
+        self::$dbTypeEquivalent = [//todo put this in a Type class
             'integer'  => 'INT',
             'string'   => 'VARCHAR(255)',
             'text'     => 'LONGTEXT',
@@ -198,5 +198,33 @@ class EntityAttribute
         $notOrDefault = $this->isNullable ? 'DEFAULT' : 'NOT';
 
         return $this->dbColumn.' '.$this->getFormatedDbType().' '.$notOrDefault.' NULL';
+    }
+
+    public function fromPHPToSQL($phpVal){//todo put this in a type class
+        $type = $this->getDbType();
+
+        if ($type === 'date' || $type === 'datetime'){
+            if (!$phpVal instanceof \DateTimeInterface){
+                throw new \Exception("Please make sure the php value passed to be put in a date or datetime column is a datetime.");
+            }
+
+            /**
+             * @var $phpVal \DateTimeInterface
+             */
+
+            if ($type === 'date'){
+                return $phpVal->format('Y-m-d');
+            }
+
+            return $phpVal->format('Y-m-d H:i:s');
+        }
+        //(there will be datetime and date in column key.
+        //todo if this is an entity attribute, do things differently...
+
+        return $phpVal;
+    }
+
+    public function fromSQLToPHP($sqlVal){//todo put this in a type class
+
     }
 }

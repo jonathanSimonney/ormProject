@@ -23,7 +23,3 @@ $filmRepository->findBy(['director' => 'name of director']);
 
 //and we can even make our conditions on the linked entities
 //Is this ok if this is made in the repositories with some exemple of how to do it with doctrine queryBuilder?
-
-
-$orm->persist($film);
-$orm->flush();

@@ -13,4 +13,3 @@ $film = $orm->getRepository(\Film::class)->find(1);
 $film->setTitle('other title');
 
 $orm->persist($film);
-$orm->flush();

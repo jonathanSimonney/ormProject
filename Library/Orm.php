@@ -192,6 +192,54 @@ class Orm
             $sqlQuery .= ')';
 
             $this->dbalConn->exec($sqlQuery);
+            //todo logs
+        }
+    }
+
+    /**
+     * @param BaseEntity $entity
+     * @throws \Exception
+     */
+    public function persist($entity)
+    {
+        var_dump($entity);
+
+        $specificEntityConfig = $this->entitiesConfig[get_class($entity)];
+
+        var_dump($specificEntityConfig);
+        if ($entity->id === null){
+            //'`id`, `test_column_title`, `director`, `releasedate`, `genre`, `duration`) VALUES (NULL, \'toto\', \'titi\', \'2017-11-12\', \'tes\', \'13\');'
+            $sqlQuery = 'INSERT INTO `'.$specificEntityConfig['dbConfig'].'` (';
+            $sqlQueryValues = '(';
+            $params = [];
+
+            $first = true;
+            foreach ($specificEntityConfig['attributes'] as $attribute){
+                if ($first){
+                    $first = false;
+                }else{
+                    $sqlQuery .= ', ';
+                    $sqlQueryValues .= ', ';
+                }
+                /**
+                 * @var $attribute EntityAttribute
+                 */
+                $sqlQuery .= '`'.$attribute->getDbColumn().'`';
+                $sqlQueryValues .= ':'.$attribute->getDbColumn();
+                $params[$attribute->getDbColumn()] = $entity->getSQLValue($attribute);
+            }
+
+            $sqlQueryValues .= ')';
+            $sqlQuery .= ') VALUES '.$sqlQueryValues;
+
+            $preparedQuery = $this->dbalConn->prepare($sqlQuery);
+
+
+            $preparedQuery->execute($params);
+
+            //todo logs
+        }else{
+            throw new \Exception("update of entities not supported yet");
         }
     }
 }

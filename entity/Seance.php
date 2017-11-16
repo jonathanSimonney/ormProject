@@ -16,8 +16,8 @@ class Seance extends BaseEntity
     protected $id;
 
     /**
-     * @var DateTime
-     * @Column date
+     * @var \DateTime
+     * @Column Datetime
      */
     protected $showtime;
 
@@ -29,9 +29,9 @@ class Seance extends BaseEntity
     protected $film;
 
     /**
-     * @return int
+     * @return int | null
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -45,17 +45,17 @@ class Seance extends BaseEntity
     }
 
     /**
-     * @return DateTime
+     * @return \DateTime
      */
-    public function getShowtime(): DateTime
+    public function getShowtime(): \DateTime
     {
         return $this->showtime;
     }
 
     /**
-     * @param DateTime $showtime
+     * @param \DateTime $showtime
      */
-    public function setShowtime(DateTime $showtime)
+    public function setShowtime(\DateTime $showtime)
     {
         $this->showtime = $showtime;
     }
