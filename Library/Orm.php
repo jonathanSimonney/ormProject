@@ -12,6 +12,7 @@ class Orm
 
     private $dbalConn;
     private $entitiesConfig;//array of entities with name, dbColumn, attributes and repository
+    private $entityFolder;
 
     public function __construct($publicConfig, $privateConfig)
     {
@@ -39,6 +40,7 @@ class Orm
     private function setupRepositoryAnnotations($repositoryFolder, $entityFolder)
     {
         $arrayRepository = scandir(__DIR__.'\\..\\'.$repositoryFolder);
+        $this->entityFolder = $entityFolder;
 
         foreach ($arrayRepository as $repo){
             if ($this->endsWith($repo, '.php')) {
@@ -106,7 +108,7 @@ class Orm
                     }
                     try{
                         $attribute = new EntityAttribute($attributeName, $annotationData);
-                        $singleEntityConfig['attributes'][$attributeName] = $attribute;
+                        $singleEntityConfig['attributes'][$attribute->getDbColumn()] = $attribute;
 
                         if ($attribute->getisId()){
                             $hasId = true;
@@ -202,13 +204,9 @@ class Orm
      */
     public function persist($entity)
     {
-        var_dump($entity);
-
         $specificEntityConfig = $this->entitiesConfig[get_class($entity)];
 
-        var_dump($specificEntityConfig);
         if ($entity->id === null){
-            //'`id`, `test_column_title`, `director`, `releasedate`, `genre`, `duration`) VALUES (NULL, \'toto\', \'titi\', \'2017-11-12\', \'tes\', \'13\');'
             $sqlQuery = 'INSERT INTO `'.$specificEntityConfig['dbConfig'].'` (';
             $sqlQueryValues = '(';
             $params = [];
@@ -241,5 +239,13 @@ class Orm
         }else{
             throw new \Exception("update of entities not supported yet");
         }
+    }
+
+    public function getRepository($class)
+    {
+        $key = $this->entityFolder.'\\'.$class;
+        $repoName = $this->entitiesConfig[$key]['repository'];
+
+        return new $repoName($this->entitiesConfig[$key], $this->dbalConn);
     }
 }

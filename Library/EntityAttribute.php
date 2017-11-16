@@ -225,6 +225,14 @@ class EntityAttribute
     }
 
     public function fromSQLToPHP($sqlVal){//todo put this in a type class
+        $type = $this->getDbType();
 
+        if ($type === 'date' || $type === 'datetime'){
+            return new \DateTime($sqlVal);
+        }
+        //(there will be datetime and date in column key.
+        //todo if this is an entity attribute, do things differently...
+
+        return $sqlVal;
     }
 }
