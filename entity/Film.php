@@ -136,7 +136,7 @@ class Film extends BaseEntity
     /**
      * @param string $genre
      */
-    public function setGenre(string $genre)
+    public function setGenre(?string $genre)
     {
         $this->genre = $genre;
     }
@@ -152,7 +152,7 @@ class Film extends BaseEntity
     /**
      * @param int $duration
      */
-    public function setDuration(int $duration)
+    public function setDuration(?int $duration)
     {
         $this->duration = $duration;
     }

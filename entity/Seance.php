@@ -39,7 +39,7 @@ class Seance extends BaseEntity
     /**
      * @param int $id
      */
-    public function setId(int $id)
+    public function setId(?int $id)
     {
         $this->id = $id;
     }
@@ -63,7 +63,7 @@ class Seance extends BaseEntity
     /**
      * @return Film
      */
-    public function getFilm(): Film
+    public function getFilm(): ?Film
     {
         return $this->film;
     }
@@ -71,7 +71,7 @@ class Seance extends BaseEntity
     /**
      * @param Film $film
      */
-    public function setFilm(Film $film)
+    public function setFilm(?Film $film)
     {
         $this->film = $film;
     }

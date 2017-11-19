@@ -53,7 +53,29 @@ class BaseRepository
         return $this->parseToEntities($dbWhereClause);
     }
 
-    protected function parseToEntities($dbWhereClause)
+    public function findAll()
+    {
+        return $this->parseToEntities('');
+    }
+
+    public function findBy($findParams, $orderParam = [])
+    {
+        $dbWhereClause = '';
+        $first = true;
+
+        foreach ($findParams as $key => $value){
+            if ($first){
+                $first = false;
+            }else{
+                $dbWhereClause .= ' AND ';
+            }
+            $dbWhereClause .= '`'.$this->dbColumn.'`.`'.$key.'` = \''.$value.'\'';
+        }
+
+        return $this->parseToEntities($dbWhereClause, $orderParam);
+    }
+
+    protected function parseToEntities($dbWhereClause, $orderByArray = [])
     {
         if ($dbWhereClause === ''){
             $completeSql = 'SELECT * FROM `'.$this->dbColumn.'`';
@@ -61,8 +83,22 @@ class BaseRepository
             $completeSql = 'SELECT * FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.')';
         }
 
+        if ($orderByArray !== []){
+            $completeSql .= ' ORDER BY ';
+            $first = true;
+            foreach ($orderByArray as $column => $ascOrDesc) {
+                if ($first){
+                    $first = false;
+                }else{
+                    $completeSql .= ', ';
+                }
+                $completeSql .= '`'.$column.'` '.strtoupper($ascOrDesc);
+            }
+        }
+
         $ret = [];
 
+        var_dump($completeSql);
 
         $arrayResult = $this->dbConn->fetchAll($completeSql);
 
