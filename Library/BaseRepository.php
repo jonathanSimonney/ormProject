@@ -15,6 +15,18 @@ class BaseRepository
         $this->dbColumn = $entityConfig['dbConfig'];
     }
 
+    public function exist($id)
+    {
+        $dbWhereClause = '`'.$this->dbColumn.'`.`id` = '.$id;
+
+        $completeSql = 'SELECT EXISTS(SELECT 1 FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.'))';
+
+        $result = $this->dbConn->executeQuery($completeSql)->fetch();
+
+        return (bool)reset($result);
+
+    }
+
     public function count($dbWhereClause)
     {
         if ($dbWhereClause === ''){
