@@ -15,6 +15,14 @@ class BaseRepository
         $this->dbColumn = $entityConfig['dbConfig'];
     }
 
+    public function suppress($id)
+    {
+        $dbWhereClause = '`'.$this->dbColumn.'`.`id` = '.$id;
+        $completeSql = 'DELETE FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.')';
+
+        $this->dbConn->executeQuery($completeSql);
+    }
+
     public function exist($id)
     {
         $dbWhereClause = '`'.$this->dbColumn.'`.`id` = '.$id;
