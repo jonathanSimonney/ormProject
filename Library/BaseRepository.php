@@ -18,9 +18,9 @@ class BaseRepository
     public function count($dbWhereClause)
     {
         if ($dbWhereClause === ''){
-            $completeSql = 'SELECT(COUNT(1)) FROM `films`';
+            $completeSql = 'SELECT(COUNT(1)) FROM `'.$this->dbColumn.'`';
         }else{
-            $completeSql = 'SELECT(COUNT(1)) FROM `films` WHERE ('.$dbWhereClause.')';
+            $completeSql = 'SELECT(COUNT(1)) FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.')';
         }
 
         return $this->dbConn->executeQuery($completeSql)->fetch()['(COUNT(1))'];
@@ -36,9 +36,9 @@ class BaseRepository
     protected function parseToEntities($dbWhereClause)
     {
         if ($dbWhereClause === ''){
-            $completeSql = 'SELECT * FROM `films`';
+            $completeSql = 'SELECT * FROM `'.$this->dbColumn.'`';
         }else{
-            $completeSql = 'SELECT * FROM `films` WHERE ('.$dbWhereClause.')';
+            $completeSql = 'SELECT * FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.')';
         }
 
         $ret = [];
