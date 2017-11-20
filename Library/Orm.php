@@ -181,15 +181,19 @@ class Orm
             $first = true;
 
             foreach ($entity['attributes'] as $attribute){
-                if ($first){
-                    $first = false;
-                }else{
-                    $sqlQuery .= ', ';
-                }
                 /**
                  * @var $attribute EntityAttribute
                  */
-                $sqlQuery .= $attribute->getSQLCreateStatement();
+                $sqlCreate = $attribute->getSQLCreateStatement();
+                if ($sqlCreate !== null){
+                    if ($first){
+                        $first = false;
+                    }else{
+                        $sqlQuery .= ', ';
+                    }
+
+                    $sqlQuery .= $sqlCreate;
+                }
             }
 
             $sqlQuery .= ')';

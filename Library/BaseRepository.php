@@ -104,8 +104,6 @@ class BaseRepository
 
         $ret = [];
 
-        var_dump($completeSql);
-
         $arrayResult = $this->dbConn->fetchAll($completeSql);
 
 //        var_dump($arrayResult, $this->entityConfig);
