@@ -2,9 +2,11 @@
 
 namespace test;
 
+use entity\Film;
+
 require_once '../index.php';
 
-$filmRepository = $orm->getRepository(\Film::class);
+$filmRepository = $orm->getRepository(Film::class);
 
 //we select a film by id
 $film = $filmRepository->find(1);

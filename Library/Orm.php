@@ -4,6 +4,7 @@ namespace Library;
 
 use Doctrine\Common\CommonException;
 use Doctrine\DBAL\Exception\ConnectionException;
+use entity\Film;
 
 class Orm
 {
@@ -237,13 +238,41 @@ class Orm
 
             //todo logs
         }else{
-            throw new \Exception("update of entities not supported yet");
+            $oldEntity = $this->getRepository(\get_class($entity))->find($entity->getId());
+            $entityAttributeArray = $this->entitiesConfig[\get_class($entity)]['attributes'];
+            $updateContent = '';
+            $id = null;
+
+            foreach ($entityAttributeArray as $attribute) {
+                /** @var EntityAttribute $attribute */
+                $getter = 'get'.ucfirst($attribute->getName());
+
+                if ($oldEntity->$getter() !== $entity->$getter()){//todo currently compare two identical datetime as different!
+                    if ($updateContent !== ''){
+                        $updateContent .= ', ';
+                    }
+
+                    $updateContent .= '`'.$attribute->getDbColumn().'` = \''.$attribute->fromPHPToSQL($entity->$getter()).'\'';
+                }
+
+                if ($id === null && $attribute->getisId()){
+                    $id = $entity->$getter();
+                    $idColumn = $attribute->getDbColumn();
+                }
+            }
+
+            if ($updateContent !== ''){
+                $updateStatement = 'UPDATE `'.$this->entitiesConfig[\get_class($entity)]['dbConfig'].'` SET ';
+                $updateStatement .= $updateContent.' WHERE `'.$this->entitiesConfig[\get_class($entity)]['dbConfig'].'`.`'.$idColumn.'` = '.$id;
+
+                $this->dbalConn->exec($updateStatement);
+            }
         }
     }
 
     public function getRepository($class)
     {
-        $key = $this->entityFolder.'\\'.$class;
+        $key = $class;
         $repoName = $this->entitiesConfig[$key]['repository'];
 
         return new $repoName($this->entitiesConfig[$key], $this->dbalConn);

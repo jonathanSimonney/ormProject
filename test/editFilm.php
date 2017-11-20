@@ -2,10 +2,12 @@
 
 namespace test;
 
+use entity\Film;
+
 require_once '../index.php';
 
 //we select a film by id
-$film = $orm->getRepository(\Film::class)->find(1)[0];
+$film = $orm->getRepository(Film::class)->find(5);
 
 $film->setTitle('other title');
 

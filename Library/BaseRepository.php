@@ -50,7 +50,13 @@ class BaseRepository
     {
         $dbWhereClause = '`'.$this->dbColumn.'`.`id` = '.$id;
 
-        return $this->parseToEntities($dbWhereClause);
+        $arrayEntities = $this->parseToEntities($dbWhereClause);
+
+        if (\count($arrayEntities) === 0){
+            return null;
+        }
+
+        return $arrayEntities[0];
     }
 
     public function findAll()
