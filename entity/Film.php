@@ -59,6 +59,7 @@ class Film extends BaseEntity
     public function __construct()
     {
         $this->seances = [];
+        parent::__construct();
     }
 
     /**

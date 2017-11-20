@@ -3,8 +3,18 @@
 namespace Library;
 
 
-class BaseEntity
+abstract class BaseEntity
 {
+//    public $needFlush;
+
+    abstract public function getId();
+    abstract public function setId(int $id);
+
+    public function __construct()
+    {
+//        $this->needFlush = true;
+    }
+
     public function __get($name)
     {
         $getter = 'get'.ucfirst($name);

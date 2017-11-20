@@ -142,6 +142,9 @@ class EntityAttribute
      */
     public function getDbColumn()
     {
+        if ($this->entityRel['type'] === 'ManyToOne'){
+            return $this->dbColumn.'_id';
+        }
         return $this->dbColumn;
     }
 
@@ -185,6 +188,14 @@ class EntityAttribute
         $this->attributeType = $attributeType;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getEntityRel()
+    {
+        return $this->entityRel;
+    }
+
     public function getSQLCreateStatement(){
         if ($this->isId){
             return $this->dbColumn.' INT AUTO_INCREMENT NOT NULL, PRIMARY KEY('.$this->name.')';
@@ -205,7 +216,7 @@ class EntityAttribute
     public function fromPHPToSQL($phpVal){//todo put this in a type class
         $type = $this->getDbType();
 
-        if ($type === 'date' || $type === 'datetime'){
+        if ($type === 'date' || $type === 'Datetime'){
             if (!$phpVal instanceof \DateTimeInterface){
                 throw new \Exception("Please make sure the php value passed to be put in a date or datetime column is a datetime.");
             }
@@ -221,7 +232,13 @@ class EntityAttribute
             return $phpVal->format('Y-m-d H:i:s');
         }
         //(there will be datetime and date in column key.
-        //todo if this is an entity attribute, do things differently...
+        if ($this->entityRel !== null){
+            if ($this->entityRel['type'] === 'ManyToOne'){
+                /** @var $phpVal BaseEntity */
+                return $phpVal->getId();
+            }
+            return null;
+        }
 
         return $phpVal;
     }

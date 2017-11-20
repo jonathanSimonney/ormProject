@@ -209,27 +209,58 @@ class Orm
      */
     public function persist($entity)
     {
+        $toBePersistedAfter = array(); //array of children elems who NEED this elem to be persisted themselves.
         $specificEntityConfig = $this->entitiesConfig[get_class($entity)];
 
-        if ($entity->id === null){
+        if ($entity->getId() === null){
             $sqlQuery = 'INSERT INTO `'.$specificEntityConfig['dbConfig'].'` (';
             $sqlQueryValues = '(';
             $params = [];
 
             $first = true;
             foreach ($specificEntityConfig['attributes'] as $attribute){
-                if ($first){
-                    $first = false;
-                }else{
-                    $sqlQuery .= ', ';
-                    $sqlQueryValues .= ', ';
-                }
                 /**
                  * @var $attribute EntityAttribute
                  */
-                $sqlQuery .= '`'.$attribute->getDbColumn().'`';
-                $sqlQueryValues .= ':'.$attribute->getDbColumn();
-                $params[$attribute->getDbColumn()] = $entity->getSQLValue($attribute);
+                if ($attribute->getEntityRel() === null){
+                    if ($first){
+                        $first = false;
+                    }else{
+                        $sqlQuery .= ', ';
+                        $sqlQueryValues .= ', ';
+                    }
+
+                    $sqlQuery .= '`'.$attribute->getDbColumn().'`';
+                    $sqlQueryValues .= ':'.$attribute->getDbColumn();
+                    $params[$attribute->getDbColumn()] = $entity->getSQLValue($attribute);
+                }elseif($attribute->getEntityRel()['type'] === 'OneToMany'){
+                    $getter = 'get'.ucfirst($attribute->getName());
+                    $setter = 'set'.ucfirst($attribute->getEntityRel()['oppositeAttribute']);
+
+                    foreach ($entity->$getter() as $singleEntityToPersist){
+                        $toBePersistedAfter[$setter] = $singleEntityToPersist;
+                        //we save the persist of linked entities for after in order to have their "parent" id.
+                    }
+                }else{
+                    if ($first){
+                        $first = false;
+                    }else{
+                        $sqlQuery .= ', ';
+                        $sqlQueryValues .= ', ';
+                    }
+
+                    $sqlQuery .= '`'.$attribute->getDbColumn().'`';
+                    $sqlQueryValues .= ':'.$attribute->getDbColumn();
+                    if ($entity->getSQLValue($attribute) === null){
+                        $getter = 'get'.ucfirst($attribute->getName());
+                        $adder = 'add'.ucfirst(substr($attribute->getEntityRel()['oppositeAttribute'], 0, -1));
+                        $entity->$getter()->$adder($entity);
+                        $this->persist($entity->$getter());
+                        return;
+                    }
+                    $params[$attribute->getDbColumn()] = $entity->getSQLValue($attribute);
+                }
+
             }
 
             $sqlQueryValues .= ')';
@@ -237,8 +268,13 @@ class Orm
 
             $preparedQuery = $this->dbalConn->prepare($sqlQuery);
 
-
             $preparedQuery->execute($params);
+
+            foreach ($toBePersistedAfter as $setter => $singleEntityToPersist){
+                $entity->setId($this->dbalConn->lastInsertId());
+                $singleEntityToPersist->$setter($entity);
+                $this->persist($singleEntityToPersist);
+            }
 
             //todo logs
         }else{
