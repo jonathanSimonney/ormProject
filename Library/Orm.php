@@ -209,8 +209,12 @@ class Orm
      */
     public function persist($entity)
     {
+        if ($entity instanceof MockedEntity){
+            $entity = $entity->getTrueEntity();
+        }
+
         $toBePersistedAfter = array(); //array of children elems who NEED this elem to be persisted themselves.
-        $specificEntityConfig = $this->entitiesConfig[get_class($entity)];
+        $specificEntityConfig = $this->entitiesConfig[\get_class($entity)];
 
         if ($entity->getId() === null){
             $sqlQuery = 'INSERT INTO `'.$specificEntityConfig['dbConfig'].'` (';
@@ -315,6 +319,11 @@ class Orm
         $key = $class;
         $repoName = $this->entitiesConfig[$key]['repository'];
 
-        return new $repoName($this->entitiesConfig[$key], $this->dbalConn);
+        return new $repoName($this->entitiesConfig[$key], $this->dbalConn, $this);
+    }
+
+    public function getEntityFolder()
+    {
+        return $this->entityFolder;
     }
 }

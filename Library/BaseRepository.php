@@ -4,12 +4,15 @@ namespace Library;
 
 class BaseRepository
 {
+    /** @var  $orm Orm */
+    private $orm;
     private $entityConfig;
     private $dbConn;
     protected $dbColumn;//useful for easier access in user created repository...
 
-    public function __construct($entityConfig, $dbConn)
+    public function __construct($entityConfig, $dbConn, $orm)
     {
+        $this->orm = $orm;
         $this->dbConn = $dbConn;
         $this->entityConfig = $entityConfig;
         $this->dbColumn = $entityConfig['dbConfig'];
@@ -110,17 +113,47 @@ class BaseRepository
 
         foreach ($arrayResult as $result){
             $newElem = new $this->entityConfig['name']();
+            $addMock = false;
+            $mockedNewElem = null;
 
             foreach ($result as $columnName => $sqlValue){
                 /** @var EntityAttribute $attributeObject */
                 $attributeObject = $this->entityConfig['attributes'][$columnName];
+
+                if ($attributeObject->getEntityRel() !== null){
+                    $addMock = true;
+                    $mockedNewElem = new MockedEntity($newElem);
+                    if ($attributeObject->getEntityRel()['type'] === 'ManyToOne'){
+                        $getter = 'get'.ucfirst($attributeObject->getName());
+
+                        $className = $this->orm->getEntityFolder().'\\'.$attributeObject->getAttributeType();
+                        $replacementFunc = function () use ($sqlValue, $className){
+                            $otherEntityRepo = $this->orm->getRepository($className);
+                            return $otherEntityRepo->find($sqlValue);
+                        };
+
+                        $mockedNewElem->addForbiddenCall($getter, $replacementFunc);
+                    }else{
+                        die('ho');
+                    }
+                    continue;
+                }
+
                 $setter = 'set'.ucfirst($attributeObject->getName());
                 $phpValue = $attributeObject->fromSQLToPHP($sqlValue);
 
-                $newElem->$setter($phpValue);
+                if ($addMock){
+                    $mockedNewElem->$setter($phpValue);
+                }else{
+                    $newElem->$setter($phpValue);
+                }
             }
 
-            $ret[] = $newElem;
+            if ($addMock){
+                $ret[] = $mockedNewElem;
+            }else{
+                $ret[] = $newElem;
+            }
         }
 
         return $ret;

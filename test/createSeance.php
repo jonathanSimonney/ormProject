@@ -20,3 +20,15 @@ $film->setDirector('me');
 $seance->setFilm($film);
 
 $orm->persist($seance);
+
+$otherSeance = new Seance();
+$otherSeance->setShowtime(new \DateTime('tomorrow'));
+
+$filmRepository = $orm->getRepository(Film::class);
+
+//we select a film by id
+$otherFilm = $filmRepository->find(1);
+
+$otherSeance->setFilm($otherFilm);
+
+$orm->persist($otherSeance);

@@ -216,7 +216,7 @@ class EntityAttribute
     public function fromPHPToSQL($phpVal){//todo put this in a type class
         $type = $this->getDbType();
 
-        if ($type === 'date' || $type === 'Datetime'){
+        if ($phpVal !== null && ($type === 'date' || $type === 'Datetime')){
             if (!$phpVal instanceof \DateTimeInterface){
                 throw new \Exception("Please make sure the php value passed to be put in a date or datetime column is a datetime.");
             }
@@ -246,11 +246,10 @@ class EntityAttribute
     public function fromSQLToPHP($sqlVal){//todo put this in a type class
         $type = $this->getDbType();
 
-        if ($type === 'date' || $type === 'datetime'){
+        if ($type === 'date' || $type === 'Datetime'){
             return new \DateTime($sqlVal);
         }
         //(there will be datetime and date in column key.
-        //todo if this is an entity attribute, do things differently...
 
         return $sqlVal;
     }

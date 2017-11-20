@@ -47,7 +47,7 @@ class Seance extends BaseEntity
     /**
      * @return \DateTime
      */
-    public function getShowtime(): \DateTime
+    public function getShowtime(): ?\DateTime
     {
         return $this->showtime;
     }
