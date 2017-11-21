@@ -49,10 +49,3 @@ will simply be the BaseRepository.
 
 You'll need to make sure all your entities extend the BaseEntity given in the library.
   
-####Further updates to do : 
-
-- write the test
-- make the orm pass the test
-- make the logs
-- make a better doc
-- write the further improvement and some more examples.
