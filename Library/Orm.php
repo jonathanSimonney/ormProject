@@ -14,9 +14,12 @@ class Orm
     private $dbalConn;
     private $entitiesConfig;//array of entities with name, dbColumn, attributes and repository
     private $entityFolder;
+    private $logManager;
 
     public function __construct($publicConfig, $privateConfig)
     {
+        $this->logManager = new LogManager();
+
         if ($publicConfig['language'] !== 'mySql'){
             throw new \Exception("No other language than mySql is currently supported.");
         }
@@ -198,8 +201,15 @@ class Orm
 
             $sqlQuery .= ')';
 
-            $this->dbalConn->exec($sqlQuery);
-            //todo logs
+            try{
+                $begin = microtime(true);
+                $this->dbalConn->exec($sqlQuery);
+                $duration = microtime(true) - $begin;
+
+                $this->logManager->writeToLog($sqlQuery, [], $duration);
+            }catch (DBALException $error){
+                $this->logManager->writeToLog($sqlQuery, [], $error);
+            }
         }
     }
 
@@ -271,13 +281,20 @@ class Orm
             $sqlQueryValues .= ')';
             $sqlQuery .= ') VALUES '.$sqlQueryValues;
 
-            $preparedQuery = $this->dbalConn->prepare($sqlQuery);
+            try{
+                $preparedQuery = $this->dbalConn->prepare($sqlQuery);
 
-            $preparedQuery->execute($params);
+                $begin = microtime(true);
+                $preparedQuery->execute($params);
+                $duration = microtime(true) - $begin;
 
-            //todo logs
+                $this->logManager->writeToLog($sqlQuery, $params, $duration);
+            }catch (DBALException $error){
+                $this->logManager->writeToLog($sqlQuery, $params, $error);
+            }
 
             $entity->setId($this->dbalConn->lastInsertId());
+
         }else{
             $oldEntity = $this->getRepository(\get_class($entity))->find($entity->getId());
             $entityAttributeArray = $this->entitiesConfig[\get_class($entity)]['attributes'];
@@ -329,7 +346,15 @@ class Orm
                 $updateStatement = 'UPDATE `'.$this->entitiesConfig[\get_class($entity)]['dbConfig'].'` SET ';
                 $updateStatement .= $updateContent.' WHERE `'.$this->entitiesConfig[\get_class($entity)]['dbConfig'].'`.`'.$idColumn.'` = '.$id;
 
-                $this->dbalConn->exec($updateStatement);
+                try{
+                    $begin = microtime(true);
+                    $this->dbalConn->exec($updateStatement);
+                    $duration = microtime(true) - $begin;
+
+                    $this->logManager->writeToLog($updateStatement, [], $duration);
+                }catch (DBALException $error){
+                    $this->logManager->writeToLog($updateStatement, [], $error);
+                }
             }
         }
 
@@ -346,7 +371,7 @@ class Orm
         $key = $class;
         $repoName = $this->entitiesConfig[$key]['repository'];
 
-        return new $repoName($this->entitiesConfig[$key], $this->dbalConn, $this);
+        return new $repoName($this->entitiesConfig[$key], $this->dbalConn, $this, $this->logManager);
     }
 
     public function getEntityFolder()

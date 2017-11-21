@@ -1,0 +1,1 @@
+2017-11-21 10:51:22 DELETE FROM `films` WHERE (`films`.`id` = 12) with params : [] in 0.053337097167969 microseconds

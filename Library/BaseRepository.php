@@ -2,6 +2,10 @@
 namespace Library;
 
 
+use Couchbase\Exception;
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Driver\PDOException;
+
 class BaseRepository
 {
     /** @var  $orm Orm */
@@ -9,13 +13,15 @@ class BaseRepository
     private $entityConfig;
     private $dbConn;
     protected $dbColumn;//useful for easier access in user created repository...
+    private $logManager;
 
-    public function __construct($entityConfig, $dbConn, $orm)
+    public function __construct($entityConfig, $dbConn, $orm, $logManager)
     {
         $this->orm = $orm;
         $this->dbConn = $dbConn;
         $this->entityConfig = $entityConfig;
         $this->dbColumn = $entityConfig['dbConfig'];
+        $this->logManager = $logManager;
     }
 
     public function suppress($id)
@@ -23,7 +29,15 @@ class BaseRepository
         $dbWhereClause = '`'.$this->dbColumn.'`.`id` = '.$id;
         $completeSql = 'DELETE FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.')';
 
-        $this->dbConn->executeQuery($completeSql);
+        try{
+            $begin = microtime(true);
+            $this->dbConn->executeQuery($completeSql);
+            $duration = microtime(true) - $begin;
+
+            $this->logManager->writeToLog($completeSql, [], $duration);
+        }catch (DBALException $error){
+            $this->logManager->writeToLog($completeSql, [], $error);
+        }
     }
 
     public function exist($id)
@@ -32,7 +46,15 @@ class BaseRepository
 
         $completeSql = 'SELECT EXISTS(SELECT 1 FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.'))';
 
-        $result = $this->dbConn->executeQuery($completeSql)->fetch();
+        try{
+            $begin = microtime(true);
+            $result = $this->dbConn->executeQuery($completeSql)->fetch();
+            $duration = microtime(true) - $begin;
+
+            $this->logManager->writeToLog($completeSql, [], $duration);
+        }catch (DBALException $error){
+            $this->logManager->writeToLog($completeSql, [], $error);
+        }
 
         return (bool)reset($result);
 
@@ -46,7 +68,17 @@ class BaseRepository
             $completeSql = 'SELECT(COUNT(1)) FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.')';
         }
 
-        return $this->dbConn->executeQuery($completeSql)->fetch()['(COUNT(1))'];
+        try{
+            $begin = microtime(true);
+            $result = $this->dbConn->executeQuery($completeSql)->fetch()['(COUNT(1))'];
+            $duration = microtime(true) - $begin;
+
+            $this->logManager->writeToLog($completeSql, [], $duration);
+        }catch (DBALException $error){
+            $this->logManager->writeToLog($completeSql, [], $error);
+        }
+
+        return $result;
     }
 
     public function find($id)
@@ -107,7 +139,15 @@ class BaseRepository
 
         $ret = [];
 
-        $arrayResult = $this->dbConn->fetchAll($completeSql);
+        try{
+            $begin = microtime(true);
+            $arrayResult = $this->dbConn->fetchAll($completeSql);
+            $duration = microtime(true) - $begin;
+
+            $this->logManager->writeToLog($completeSql, [], $duration);
+        }catch (DBALException $error){
+            $this->logManager->writeToLog($completeSql, [], $error);
+        }
 
 //        var_dump($arrayResult, $this->entityConfig);
 
