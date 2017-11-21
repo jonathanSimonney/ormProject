@@ -1,4 +1,4 @@
-#installation
+# installation
 
 To use this repository, do not forget to install composer. (The **doc** is available [here](https://getcomposer.org/))  
 and to run the command
