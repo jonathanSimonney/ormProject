@@ -240,9 +240,10 @@ class Orm
                 }elseif($attribute->getEntityRel()['type'] === 'OneToMany'){
                     $getter = 'get'.ucfirst($attribute->getName());
                     $setter = 'set'.ucfirst($attribute->getEntityRel()['oppositeAttribute']);
+                    $toBePersistedAfter[$setter] = array();
 
                     foreach ($entity->$getter() as $singleEntityToPersist){
-                        $toBePersistedAfter[$setter] = $singleEntityToPersist;
+                        $toBePersistedAfter[$setter][] = $singleEntityToPersist;
                         //we save the persist of linked entities for after in order to have their "parent" id.
                     }
                 }else{
@@ -274,13 +275,9 @@ class Orm
 
             $preparedQuery->execute($params);
 
-            foreach ($toBePersistedAfter as $setter => $singleEntityToPersist){
-                $entity->setId($this->dbalConn->lastInsertId());
-                $singleEntityToPersist->$setter($entity);
-                $this->persist($singleEntityToPersist);
-            }
-
             //todo logs
+
+            $entity->setId($this->dbalConn->lastInsertId());
         }else{
             $oldEntity = $this->getRepository(\get_class($entity))->find($entity->getId());
             $entityAttributeArray = $this->entitiesConfig[\get_class($entity)]['attributes'];
@@ -292,11 +289,34 @@ class Orm
                 $getter = 'get'.ucfirst($attribute->getName());
 
                 if ($oldEntity->$getter() !== $entity->$getter()){//todo currently compare two identical datetime as different!
-                    if ($updateContent !== ''){
-                        $updateContent .= ', ';
-                    }
+                    if ($attribute->getEntityRel() === null){
+                        if ($updateContent !== ''){
+                            $updateContent .= ', ';
+                        }
 
-                    $updateContent .= '`'.$attribute->getDbColumn().'` = \''.$attribute->fromPHPToSQL($entity->$getter()).'\'';
+                        $updateContent .= '`'.$attribute->getDbColumn().'` = \''.$attribute->fromPHPToSQL($entity->$getter()).'\'';
+                    }elseif($attribute->getEntityRel()['type'] === 'OneToMany'){
+                        $setter = 'set'.ucfirst($attribute->getEntityRel()['oppositeAttribute']);
+                        $toBePersistedAfter[$setter] = array();
+
+                        foreach ($entity->$getter() as $singleEntityToPersist){
+                            $toBePersistedAfter[$setter][] = $singleEntityToPersist;
+                            //we save the persist of linked entities for after in order to have their "parent" id.
+                        }
+                    }else{
+                        if ($attribute->fromPHPToSQL($entity->$getter()) === null){
+                            $adder = 'add'.ucfirst(substr($attribute->getEntityRel()['oppositeAttribute'], 0, -1));
+                            $entity->$getter()->$adder($entity);
+                            $this->persist($entity->$getter());
+                            return;
+                        }
+
+                        if ($updateContent !== ''){
+                            $updateContent .= ', ';
+                        }
+
+                        $updateContent .= '`'.$attribute->getDbColumn().'` = \''.$attribute->fromPHPToSQL($entity->$getter()).'\'';
+                    }
                 }
 
                 if ($id === null && $attribute->getisId()){
@@ -310,6 +330,13 @@ class Orm
                 $updateStatement .= $updateContent.' WHERE `'.$this->entitiesConfig[\get_class($entity)]['dbConfig'].'`.`'.$idColumn.'` = '.$id;
 
                 $this->dbalConn->exec($updateStatement);
+            }
+        }
+
+        foreach ($toBePersistedAfter as $setter => $arrayEntityToPersist){
+            foreach ($arrayEntityToPersist as $singleEntityToPersist){
+                $singleEntityToPersist->$setter($entity);
+                $this->persist($singleEntityToPersist);
             }
         }
     }

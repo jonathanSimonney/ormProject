@@ -116,29 +116,46 @@ class BaseRepository
             $addMock = false;
             $mockedNewElem = null;
 
-            foreach ($result as $columnName => $sqlValue){
+            foreach ($this->entityConfig['attributes'] as $columnName => $attributeObject){
                 /** @var EntityAttribute $attributeObject */
-                $attributeObject = $this->entityConfig['attributes'][$columnName];
-
                 if ($attributeObject->getEntityRel() !== null){
                     $addMock = true;
                     $mockedNewElem = new MockedEntity($newElem);
                     if ($attributeObject->getEntityRel()['type'] === 'ManyToOne'){
+                        $sqlValue = $result[$columnName];
+
                         $getter = 'get'.ucfirst($attributeObject->getName());
 
                         $className = $this->orm->getEntityFolder().'\\'.$attributeObject->getAttributeType();
-                        $replacementFunc = function () use ($sqlValue, $className){
+                        $requestFunc = function () use ($sqlValue, $className){
                             $otherEntityRepo = $this->orm->getRepository($className);
                             return $otherEntityRepo->find($sqlValue);
                         };
 
-                        $mockedNewElem->addForbiddenCall($getter, $replacementFunc);
+                        $paramName = $attributeObject->getName();
+
+                        $mockedNewElem->addDelayedRequest($paramName, $requestFunc, [$getter]);
                     }else{
-                        die('ho');
+                        $getter = 'get'.ucfirst($attributeObject->getName());
+                        $adder = 'add'.ucfirst(substr($attributeObject->getName(), 0, -1));
+
+                        $foreignColumnName = $attributeObject->getEntityRel()['oppositeAttribute'].'_id';
+                        $entityId = $mockedNewElem->getId();
+
+                        $className = $this->orm->getEntityFolder().'\\'.substr($attributeObject->getAttributeType(), 0, -2);
+                        $requestFunc = function () use ($className, $foreignColumnName, $entityId){
+                            $otherEntityRepo = $this->orm->getRepository($className);
+                            return $otherEntityRepo->findBy([$foreignColumnName => $entityId]);
+                        };
+
+                        $paramName = $attributeObject->getName();
+
+                        $mockedNewElem->addDelayedRequest($paramName, $requestFunc, [$getter, $adder]);
                     }
                     continue;
                 }
 
+                $sqlValue = $result[$columnName];
                 $setter = 'set'.ucfirst($attributeObject->getName());
                 $phpValue = $attributeObject->fromSQLToPHP($sqlValue);
 

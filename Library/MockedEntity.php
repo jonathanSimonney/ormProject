@@ -7,12 +7,12 @@ namespace Library;
 class MockedEntity
 {
     private $mockedEntity;
-    private $forbiddenCall;
+    private $overidedCall;
 
     public function __construct($mockedEntity)
     {
         $this->mockedEntity = $mockedEntity;
-        $this->forbiddenCall = array();
+        $this->overidedCall = array();
     }
 
     public function __isset($name)
@@ -37,15 +37,26 @@ class MockedEntity
 
     public function __call($name, $arguments)
     {
-        if (isset($this->forbiddenCall[$name])){
-            return \call_user_func_array($this->forbiddenCall[$name], $arguments);
+        if (isset($this->overidedCall[$name])){
+            $requestAndParam = $this->overidedCall[$name];
+            $requestMethod = $requestAndParam[0];
+            $param = $requestAndParam[1];
+            $setter = 'set'.ucfirst($param);
+            $this->mockedEntity->$setter($requestMethod());
+
+            $this->overidedCall = array_filter($this->overidedCall, function ($requestAndParam) use ($param){
+                return $requestAndParam[1] !== $param;
+            });
         }
+
         return \call_user_func_array(array($this->mockedEntity, $name), $arguments);
     }
 
-    public function addForbiddenCall($methodName, $replacementMethod)
+    public function addDelayedRequest($paramToOverride, $requestMethod, $arrayMethods)
     {
-        $this->forbiddenCall[$methodName] = $replacementMethod;
+        foreach ($arrayMethods as $method){
+            $this->overidedCall[$method] = [$requestMethod, $paramToOverride];
+        }
     }
 
     public function getTrueEntity()

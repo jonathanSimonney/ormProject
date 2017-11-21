@@ -12,11 +12,7 @@ $seance = $orm->getRepository(Seance::class)->find(5);
 
 var_dump($seance->getFilm());
 
-$film = new Film();
-$film->setReleaseDate(new \DateTime());
-$film->setTitle('same title');
-$film->setDuration(123);
-$film->setDirector('me');
+$film = $orm->getRepository(Film::class)->find(1);
 
 $seance->setFilm($film);
 
