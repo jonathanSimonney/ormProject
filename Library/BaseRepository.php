@@ -84,12 +84,12 @@ class BaseRepository
         return $this->parseToEntities($dbWhereClause, $orderParam);
     }
 
-    protected function parseToEntities($dbWhereClause, $orderByArray = [])
+    protected function parseToEntities($dbWhereClause, $orderByArray = [], $joinStatement = '')
     {
         if ($dbWhereClause === ''){
             $completeSql = 'SELECT * FROM `'.$this->dbColumn.'`';
         }else{
-            $completeSql = 'SELECT * FROM `'.$this->dbColumn.'` WHERE ('.$dbWhereClause.')';
+            $completeSql = 'SELECT * FROM `'.$this->dbColumn.'` '.$joinStatement.' WHERE ('.$dbWhereClause.')';
         }
 
         if ($orderByArray !== []){

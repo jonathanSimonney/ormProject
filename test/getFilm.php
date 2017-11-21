@@ -22,4 +22,4 @@ $myFilms = $filmRepository->findBy(['director' => 'me', 'test_column_title' => '
 var_dump($myFirstFilms, $film, $allFilms, $myFilms);
 
 //and we can even make our conditions on the linked entities
-//Is this ok if this is made in the repositories with some exemple of how to do it with doctrine queryBuilder?
+var_dump($filmRepository->getFilmsShownThe(new \DateTime('2017-11-21')));
